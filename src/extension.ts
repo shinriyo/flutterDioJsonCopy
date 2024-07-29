@@ -1,27 +1,37 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
-import * as vscode from 'vscode';
+import * as vscode from "vscode";
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
-export function activate(context: vscode.ExtensionContext) {
-
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "flutterDioJsonCopy" is now active!');
-
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('flutterDioJsonCopy.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from flutter-dio-json-copy!');
-	});
-
-	context.subscriptions.push(disposable);
+function isErrorLike(error: unknown): error is { message: string } {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "message" in error &&
+    typeof (error as any).message === "string"
+  );
 }
 
-// this method is called when your extension is deactivated
+export function activate(context: vscode.ExtensionContext) {
+  const copyAsJsonCommand = vscode.commands.registerCommand(
+    "extension.copyAsJson",
+    async (variable: any) => {
+      try {
+        const jsonString = JSON.stringify(variable, null, 2);
+        await vscode.env.clipboard.writeText(jsonString);
+        vscode.window.showInformationMessage("Copied as JSON");
+      } catch (error) {
+        if (isErrorLike(error)) {
+          vscode.window.showErrorMessage(
+            "Failed to copy as JSON: " + error.message
+          );
+        } else {
+          vscode.window.showErrorMessage(
+            "Failed to copy as JSON: An unknown error occurred"
+          );
+        }
+      }
+    }
+  );
+
+  context.subscriptions.push(copyAsJsonCommand);
+}
+
 export function deactivate() {}
